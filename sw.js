@@ -1,4 +1,4 @@
-const CACHE = 'playground-home-v1';
+const CACHE = 'playground-home-v2';
 const CORE = [
   './', './index.html', './styles.css', './app.js', './manifest.webmanifest',
   './assets/icons/icon-192.png', './assets/icons/icon-512.png', './assets/background-default.svg'

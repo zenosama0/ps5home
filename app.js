@@ -33,6 +33,8 @@
     currentTab: 'games',
     currentId: null,
     keyboard: false,
+    keyboardRegion: null,
+    keyboardTargetId: null,
     controlCenter: false,
     settingsOpen: false,
     settingsSection: 'general',
@@ -46,60 +48,59 @@
 
   const builtIns = [
     {
-      id: 'welcome',
-      title: 'Welcome',
-      category: 'games',
-      description: 'Your personal home. Pick a game, add a web app, or open your local library.',
-      meta: 'HOME',
-      art: makeArt('WELCOME', ['#182c46','#4f87bd','#0a1120'], 'ring'),
-      cover: './assets/background-default.svg',
-      icon: makeIconArt('W', ['#355c89','#132033']),
-      launch: 'welcome',
-      order: 0,
+      id: 'ps-store', title: 'PlayStation Store', category: 'games',
+      description: 'Browse games, add-ons and more.', meta: 'STORE',
+      art: makeArt('PLAYSTATION STORE', ['#18283c','#2b7ca9','#08111e'], 'play'),
+      cover: makeArt('PLAYSTATION STORE', ['#17314b','#297ca8','#07101c'], 'play'),
+      icon: makeSymbolIcon('store'), launch: 'https://store.playstation.com/', order: 0,
     },
     {
-      id: 'library',
-      title: 'Game Library',
-      category: 'games',
-      description: 'All of your installed-style web apps and games in one place.',
-      meta: 'LIBRARY',
-      art: makeArt('LIBRARY', ['#1f1e3f','#5d62bf','#121329'], 'grid'),
-      icon: makeIconArt('▦', ['#514f9e','#171638']),
-      launch: 'library',
-      order: 1,
+      id: 'welcome', title: 'Welcome', category: 'games',
+      description: 'Your Welcome Hub.', meta: 'HOME',
+      art: makeArt('WELCOME', ['#111b2b','#326aa1','#080f19'], 'ring'),
+      cover: './assets/background-default.svg', icon: makeSymbolIcon('welcome'), launch: 'welcome', order: 1,
     },
     {
-      id: 'starlight',
-      title: 'Starlight Runner',
-      category: 'games',
-      description: 'A demo game tile included to make the home feel populated. Replace its art with your own.',
-      meta: 'GAME · DEMO',
-      art: makeArt('STARLIGHT RUNNER', ['#172d3b','#3e8c9e','#0b1620'], 'stars'),
-      icon: makeIconArt('S', ['#2b6e83','#111b25']),
-      launch: 'https://example.com',
-      order: 2,
+      id: 'uncharted', title: 'Uncharted', category: 'games',
+      description: 'An adventure-style demo entry. Replace the artwork or URL from Settings → Apps.', meta: 'GAME',
+      art: makeArt('UNCHARTED', ['#352219','#b26e35','#101820'], 'mountain'),
+      cover: makeArt('UNCHARTED', ['#261c18','#8b522e','#071018'], 'mountain'),
+      icon: makeIconArt('U', ['#8b542f','#241b17']), launch: 'https://example.com', order: 2,
     },
     {
-      id: 'neon-frontier',
-      title: 'Neon Frontier',
-      category: 'games',
-      description: 'Another local demo entry. Use Settings → Apps to add your actual websites.',
-      meta: 'GAME · DEMO',
-      art: makeArt('NEON FRONTIER', ['#34234a','#a85cbd','#11101d'], 'arc'),
-      icon: makeIconArt('N', ['#7e4c95','#20152a']),
-      launch: 'https://example.org',
-      order: 3,
+      id: 'astro-bot', title: 'Astro Bot', category: 'games',
+      description: 'A bright platforming-style demo entry with its own hub art.', meta: 'GAME',
+      art: makeArt('ASTRO BOT', ['#163c68','#49b1e4','#10223a'], 'stars'),
+      cover: makeArt('ASTRO BOT', ['#153861','#43acd9','#071523'], 'stars'),
+      icon: makeIconArt('A', ['#2f88bd','#0f2744']), launch: 'https://example.com', order: 3,
     },
     {
-      id: 'media-demo',
-      title: 'Media Hub',
-      category: 'media',
-      description: 'A media-home example. Add YouTube, Spotify, Plex, or other web destinations from Settings.',
-      meta: 'MEDIA · DEMO',
-      art: makeArt('MEDIA HUB', ['#1d2834','#5082ae','#0b1018'], 'play'),
-      icon: makeIconArt('▶', ['#47749a','#14202a']),
-      launch: 'https://www.youtube.com/',
-      order: 4,
+      id: 'astros-playroom', title: "Astro's Playroom", category: 'games',
+      description: 'A colorful demo tile for the local home library.', meta: 'GAME',
+      art: makeArt("ASTRO'S PLAYROOM", ['#17324b','#4bbbe1','#0d1821'], 'play'),
+      cover: makeArt("ASTRO'S PLAYROOM", ['#163a56','#43b8df','#0b141c'], 'play'),
+      icon: makeIconArt('P', ['#2c7da3','#10253a']), launch: 'https://example.com', order: 4,
+    },
+    {
+      id: 'tlou', title: 'The Last of Us Part I', category: 'games',
+      description: 'A darker demo tile. Use Settings → Apps to replace it with your own web game.', meta: 'GAME',
+      art: makeArt('THE LAST OF US', ['#1c1d19','#5f6557','#0a0c0b'], 'leaves'),
+      cover: makeArt('THE LAST OF US', ['#181a17','#4e564a','#080b0a'], 'leaves'),
+      icon: makeIconArt('L', ['#51574b','#171a16']), launch: 'https://example.com', order: 5,
+    },
+    {
+      id: 'library', title: 'Game Library', category: 'games',
+      description: 'View every built-in and custom web app in one place.', meta: 'LIBRARY',
+      art: makeArt('GAME LIBRARY', ['#1c1d21','#555961','#0b0d10'], 'grid'),
+      cover: makeArt('GAME LIBRARY', ['#1a1c20','#555c63','#090b0e'], 'grid'),
+      icon: makeSymbolIcon('library'), launch: 'library', order: 6,
+    },
+    {
+      id: 'media-home', title: 'Media', category: 'media',
+      description: 'A media-home entry for your video and music websites.', meta: 'MEDIA',
+      art: makeArt('MEDIA', ['#171f2a','#4f7ea5','#0a1017'], 'play'),
+      cover: makeArt('MEDIA', ['#17202b','#4b789f','#090f16'], 'play'),
+      icon: makeSymbolIcon('media'), launch: 'https://www.youtube.com/', order: 0,
     },
   ];
 
@@ -121,6 +122,7 @@
     $('#searchButton').innerHTML = svg('search');
     $('#settingsButton').innerHTML = svg('gear');
     $('#heroMore').innerHTML = svg('dots');
+    $('#profileButton').innerHTML = svg('profile');
   }
 
   function bindStaticEvents() {
@@ -134,7 +136,6 @@
     $('#profileButton').addEventListener('click', toggleProfileMenu);
     $('#heroLaunch').addEventListener('click', () => launchCurrent());
     $('#heroMore').addEventListener('click', openCurrentOptions);
-    $('#psButton').addEventListener('click', toggleControlCenter);
 
     $('#controlCenter').addEventListener('click', (e) => {
       if (e.target === $('#controlCenter') || e.target.classList.contains('cc-backdrop')) closeControlCenter();
@@ -163,86 +164,155 @@
   }
 
   function detectInputMode() {
-    const coarse = matchMedia('(pointer: coarse)').matches;
-    if (coarse) document.documentElement.classList.remove('keyboard-mode');
+    if (matchMedia('(pointer: coarse)').matches) {
+      document.documentElement.classList.remove('keyboard-mode');
+    }
   }
 
-  function onPointerDown() {
+  function onPointerDown(e) {
     state.keyboard = false;
+    state.keyboardRegion = null;
+    state.keyboardTargetId = null;
     document.documentElement.classList.remove('keyboard-mode');
     clearKeyboardFocus();
+    if (e?.target instanceof HTMLElement && !e.target.closest('.focusable')) return;
+  }
+
+  function focusElement(el, region = null, targetId = null, announce = false) {
+    if (!el) return;
+    state.keyboard = true;
+    state.keyboardRegion = region;
+    state.keyboardTargetId = targetId || el.dataset?.id || el.id || null;
+    document.documentElement.classList.add('keyboard-mode');
+    clearKeyboardFocus();
+    el.classList.add('keyboard-focus');
+    el.focus({ preventScroll: true });
+    if (announce) playUiSound('hover');
+  }
+
+  function homeKeyboardItems() {
+    return [$('#gamesTab'), $('#mediaTab'), $('#searchButton'), $('#settingsButton'), $('#profileButton')].filter(Boolean);
+  }
+
+  function welcomeKeyboardItems() {
+    return $$('.welcome-card.focusable');
   }
 
   function onKeyDown(e) {
-    if (['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName)) {
+    const targetTag = document.activeElement?.tagName;
+    if (['INPUT','TEXTAREA','SELECT'].includes(targetTag)) {
       if (e.key === 'Escape') document.activeElement.blur();
       return;
     }
+
     state.keyboard = true;
     document.documentElement.classList.add('keyboard-mode');
 
     if (e.key === 'F1' || e.key.toLowerCase() === 'p') {
-      e.preventDefault();
-      toggleControlCenter();
-      return;
+      e.preventDefault(); toggleControlCenter(); return;
     }
     if (e.key === 'Escape') {
       e.preventDefault();
       if (state.controlCenter) { closeControlCenter(); return; }
-      if (state.settingsOpen) { closeOverlay(); return; }
-      closeProfileMenu();
-      return;
+      if (state.settingsOpen || $('.search-overlay')) { closeOverlay(); return; }
+      closeProfileMenu(); clearKeyboardFocus(); return;
     }
 
     if (state.controlCenter) {
       if (navigateFocused(e, $$('.cc-control, .cc-card'))) return;
       return;
     }
-    if (state.settingsOpen) {
-      handleSettingsKey(e);
-      return;
-    }
-    if ($('.search-overlay')) {
-      handleSearchKey(e);
-      return;
-    }
+    if (state.settingsOpen) { handleSettingsKey(e); return; }
+    if ($('.search-overlay')) { handleSearchKey(e); return; }
 
+    const active = document.activeElement;
     const tiles = $$('.app-tile');
-    const focused = $('.app-tile.keyboard-focus');
-    if (tiles.length && focused) {
-      const idx = Number(focused.dataset.index);
-      if (e.key === 'ArrowRight') { e.preventDefault(); focusTile(clamp(idx + 1, 0, tiles.length - 1)); return; }
-      if (e.key === 'ArrowLeft') { e.preventDefault(); focusTile(clamp(idx - 1, 0, tiles.length - 1)); return; }
-      if (e.key === 'ArrowDown') { e.preventDefault(); $('#heroLaunch').focus(); markKeyboard($('#heroLaunch')); return; }
-      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectApp(state.apps.find(a => a.id === focused.dataset.id)); return; }
+    const tileIdx = tiles.indexOf(active);
+    const welcomeCards = welcomeKeyboardItems();
+    const cardIdx = welcomeCards.indexOf(active);
+    const top = homeKeyboardItems();
+    const topIdx = top.indexOf(active);
+    const heroLaunch = $('#heroLaunch');
+    const heroMore = $('#heroMore');
+    const heroItems = [heroLaunch, heroMore].filter(Boolean);
+
+    if (tileIdx >= 0) {
+      if (e.key === 'ArrowRight') { e.preventDefault(); focusTile(tileIdx + 1); return; }
+      if (e.key === 'ArrowLeft') { e.preventDefault(); focusTile(tileIdx - 1); return; }
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if ($('#homeStage').classList.contains('welcome-mode') && welcomeCards.length) focusElement(welcomeCards[0], 'welcome-card', welcomeCards[0].dataset.widget, true);
+        else if (heroLaunch) focusElement(heroLaunch, 'hero', heroLaunch.id, true);
+        return;
+      }
+      if (e.key === 'ArrowUp') { e.preventDefault(); focusElement($('#gamesTab'), 'top', 'gamesTab', true); return; }
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); launchCurrent(); return; }
+      return;
     }
 
-    const top = $$('.home-tabs .text-tab, .top-actions .focusable');
-    if (['Home','ArrowUp'].includes(e.key) && document.activeElement === $('#heroLaunch')) {
-      e.preventDefault(); focusTile(findCurrentIndex()); return;
+    if (cardIdx >= 0) {
+      const cols = welcomeCards.map(b => Number(b.dataset.col || 0));
+      const rows = welcomeCards.map(b => Number(b.dataset.row || 0));
+      const col = cols[cardIdx], row = rows[cardIdx];
+      let candidate = null;
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+        const dir = e.key === 'ArrowRight' ? 1 : -1;
+        const sameRow = welcomeCards.filter((b,i) => rows[i] === row).sort((a,b) => Number(a.dataset.col)-Number(b.dataset.col));
+        const pos = sameRow.indexOf(active);
+        candidate = sameRow[clamp(pos + dir,0,sameRow.length-1)];
+      } else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+        const dir = e.key === 'ArrowDown' ? 1 : -1;
+        const sameCol = welcomeCards.filter((b,i) => cols[i] === col).sort((a,b) => Number(a.dataset.row)-Number(b.dataset.row));
+        const pos = sameCol.indexOf(active);
+        candidate = sameCol[clamp(pos + dir,0,sameCol.length-1)];
+        if (pos === 0 && dir < 0) { e.preventDefault(); focusTile(findCurrentIndex()); return; }
+      }
+      if (candidate) { e.preventDefault(); focusElement(candidate, 'welcome-card', candidate.dataset.widget, true); candidate.scrollIntoView({behavior:'smooth',block:'nearest'}); return; }
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); active.click(); return; }
+      return;
     }
-    if (e.key === 'ArrowRight' && top.includes(document.activeElement)) {
-      e.preventDefault(); cycleFocus(top, +1); return;
+
+    if (heroItems.includes(active)) {
+      const idx = heroItems.indexOf(active);
+      if (e.key === 'ArrowRight') { e.preventDefault(); focusElement(heroItems[clamp(idx+1,0,heroItems.length-1)], 'hero', heroItems[clamp(idx+1,0,heroItems.length-1)].id, true); return; }
+      if (e.key === 'ArrowLeft') { e.preventDefault(); focusElement(heroItems[clamp(idx-1,0,heroItems.length-1)], 'hero', heroItems[clamp(idx-1,0,heroItems.length-1)].id, true); return; }
+      if (e.key === 'ArrowUp') { e.preventDefault(); focusTile(findCurrentIndex()); return; }
+      if (e.key === 'ArrowDown' && $('#homeStage').classList.contains('welcome-mode') && welcomeCards.length) { e.preventDefault(); focusElement(welcomeCards[0], 'welcome-card', welcomeCards[0].dataset.widget, true); return; }
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); active.click(); return; }
+      return;
     }
-    if (e.key === 'ArrowLeft' && top.includes(document.activeElement)) {
-      e.preventDefault(); cycleFocus(top, -1); return;
+
+    if (topIdx >= 0) {
+      if (e.key === 'ArrowRight') { e.preventDefault(); focusElement(top[clamp(topIdx+1,0,top.length-1)], 'top', top[clamp(topIdx+1,0,top.length-1)].id, true); return; }
+      if (e.key === 'ArrowLeft') { e.preventDefault(); focusElement(top[clamp(topIdx-1,0,top.length-1)], 'top', top[clamp(topIdx-1,0,top.length-1)].id, true); return; }
+      if (e.key === 'ArrowDown') { e.preventDefault(); focusTile(findCurrentIndex()); return; }
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); active.click(); return; }
+      return;
     }
-    if (e.key === 'ArrowDown' && top.includes(document.activeElement)) {
-      e.preventDefault(); focusTile(findCurrentIndex()); return;
+
+    if (e.key.startsWith('Arrow')) {
+      e.preventDefault();
+      focusTile(findCurrentIndex());
+      return;
     }
-    if (e.key === 'Enter' && top.includes(document.activeElement)) {
-      e.preventDefault(); document.activeElement.click();
-    }
-    if (e.key.toLowerCase() === 's') openSettings('general');
-    if (e.key.toLowerCase() === 'f') openSearch();
+    if (e.key.toLowerCase() === 's') { e.preventDefault(); openSettings('general'); return; }
+    if (e.key.toLowerCase() === 'f') { e.preventDefault(); openSearch(); }
   }
-
   function handleSettingsKey(e) {
     const nav = $$('.settings-nav button');
-    if (nav.includes(document.activeElement)) {
+    const controls = $$('.panel .focusable');
+    const active = document.activeElement;
+    if (nav.includes(active)) {
       if (e.key === 'ArrowDown') { e.preventDefault(); cycleFocus(nav, +1); return; }
       if (e.key === 'ArrowUp') { e.preventDefault(); cycleFocus(nav, -1); return; }
-      if (e.key === 'Enter') { e.preventDefault(); document.activeElement.click(); return; }
+      if (e.key === 'ArrowRight') { e.preventDefault(); focusElement(controls.find(x => !nav.includes(x)) || $('#settingsClose'), 'settings', 'settingsClose', true); return; }
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); active.click(); return; }
+    }
+    if (active && controls.includes(active) && !nav.includes(active)) {
+      const idx = controls.indexOf(active);
+      if (e.key === 'ArrowUp') { e.preventDefault(); focusElement(nav[Math.min(Math.max(idx - 1,0), nav.length-1)], 'settings-nav', nav[Math.min(Math.max(idx - 1,0), nav.length-1)].dataset.section, true); return; }
+      if (e.key === 'Escape') { e.preventDefault(); closeOverlay(); return; }
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); active.click(); return; }
     }
   }
 
@@ -263,33 +333,31 @@
     if (!items.length) return false;
     const current = document.activeElement;
     const idx = items.indexOf(current);
-    if (idx < 0 && (e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
-      items[0].focus(); markKeyboard(items[0]); return true;
+    if (idx < 0 && ['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)) {
+      e.preventDefault(); focusElement(items[0], null, items[0].id || items[0].dataset?.id, true); return true;
     }
     let next = idx;
-    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') next = (idx + 1) % items.length;
-    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') next = (idx - 1 + items.length) % items.length;
-    if (next !== idx) { e.preventDefault(); items[next].focus(); markKeyboard(items[next]); return true; }
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') next = clamp(idx + 1,0,items.length-1);
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') next = clamp(idx - 1,0,items.length-1);
+    if (next !== idx) { e.preventDefault(); focusElement(items[next], null, items[next].id || items[next].dataset?.id, true); return true; }
     if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); current?.click(); return true; }
     return false;
   }
 
   function cycleFocus(items, delta) {
+    if (!items.length) return;
     const idx = Math.max(0, items.indexOf(document.activeElement));
-    const next = (idx + delta + items.length) % items.length;
-    items[next].focus();
-    markKeyboard(items[next]);
+    const next = clamp(idx + delta, 0, items.length - 1);
+    focusElement(items[next], null, items[next].id || items[next].dataset?.id, true);
   }
 
   function markKeyboard(el) {
-    clearKeyboardFocus();
-    if (el) el.classList.add('keyboard-focus');
+    focusElement(el, state.keyboardRegion, state.keyboardTargetId, false);
   }
 
   function clearKeyboardFocus() {
     $$('.keyboard-focus').forEach(el => el.classList.remove('keyboard-focus'));
   }
-
   async function openDb() {
     state.db = await new Promise((resolve, reject) => {
       const req = indexedDB.open(DB_NAME, DB_VERSION);
@@ -377,7 +445,7 @@
     updateHero();
     renderWidgets();
     renderControlCenter();
-    clearKeyboardFocus();
+    restoreKeyboardFocus();
   }
 
   function renderTabs() {
@@ -390,7 +458,7 @@
     const apps = getVisibleApps();
     wrap.innerHTML = '';
     if (!apps.length) {
-      wrap.innerHTML = `<div class="empty-state" style="width:100%;padding:50px 0;text-align:left">No media apps yet. Open Settings → Apps and add a website as a media app.</div>`;
+      wrap.innerHTML = `<div class="empty-state" style="padding:42px 0;text-align:left">No media apps yet. Open Settings → Apps and add a website as a media app.</div>`;
       return;
     }
     apps.forEach((app, i) => {
@@ -400,70 +468,138 @@
       b.tabIndex = 0;
       b.dataset.id = app.id;
       b.dataset.index = i;
-      b.setAttribute('role', 'option');
+      b.setAttribute('role','option');
       b.setAttribute('aria-selected', app.id === state.currentId ? 'true' : 'false');
-      b.innerHTML = `<img src="${escapeAttr(app.art || app.icon)}" alt=""><span class="tile-label">${escapeHtml(app.title)}</span>`;
-      b.addEventListener('click', () => selectApp(app));
+      const tileSrc = app.icon || app.art;
+      b.innerHTML = `<img src="${escapeAttr(tileSrc)}" alt=""><span class="tile-label">${escapeHtml(app.title)}</span>`;
+      b.addEventListener('click', (ev) => {
+        ev.currentTarget.blur();
+        selectApp(app, {focus:false, sound:true});
+      });
       b.addEventListener('dblclick', () => launchApp(app));
       if (app.id === state.currentId) b.classList.add('is-active');
       wrap.appendChild(b);
     });
     requestAnimationFrame(() => {
       const current = wrap.querySelector(`[data-id="${CSS.escape(state.currentId || '')}"]`);
-      current?.scrollIntoView({ behavior: 'instant', block: 'nearest', inline: 'center' });
+      current?.scrollIntoView({ behavior:'auto', block:'nearest', inline:'center' });
+      restoreKeyboardFocus();
     });
   }
 
+  function restoreKeyboardFocus() {
+    if (!state.keyboard || !state.keyboardTargetId) return;
+    const id = String(state.keyboardTargetId);
+    const target = document.getElementById(id) || document.querySelector(`[data-id="${CSS.escape(id)}"]`) || document.querySelector(`[data-widget="${CSS.escape(id)}"]`);
+    if (target) {
+      clearKeyboardFocus();
+      target.classList.add('keyboard-focus');
+      target.focus({preventScroll:true});
+    }
+  }
   function updateHero() {
     const app = getCurrentApp();
     if (!app) return;
+    const welcome = app.id === 'welcome';
+    $('#homeStage').classList.toggle('welcome-mode', welcome);
     $('#heroMeta').textContent = app.meta || (app.custom ? `CUSTOM · ${app.category.toUpperCase()}` : 'APP');
     $('#heroTitle').textContent = app.title;
     $('#heroDescription').textContent = app.description || '';
     $('#heroLaunch').textContent = app.launch === 'library' ? 'View' : app.launch === 'welcome' ? 'Welcome' : app.category === 'media' ? 'Open' : 'Play';
     $('#ambientBg').style.backgroundImage = `url("${escapeCssUrl(app.cover || app.art || app.icon)}")`;
-    $('#ambientBg').style.filter = `saturate(1.15) blur(${Math.max(0, state.settings.blur / 5)}px)`;
-    $('#ambientBg').style.transform = state.settings.reduceMotion ? 'scale(1.015)' : 'scale(1.035)';
+    $('#ambientBg').style.filter = `saturate(1.08) blur(${Math.max(0, state.settings.blur / 7)}px)`;
+    $('#ambientBg').style.transform = state.settings.reduceMotion ? 'scale(1.012)' : 'scale(1.025)';
     $('#heroLaunch').dataset.id = app.id;
   }
-
   function renderWidgets() {
     const host = $('#welcomeWidgets');
     host.innerHTML = '';
     host.style.display = state.settings.showWidgets ? '' : 'none';
-    const recent = getRecentApps();
-    const selected = getCurrentApp();
-    const customCount = state.apps.filter(a => a.custom).length;
-    host.appendChild(widget('Recently Played', recent[0]?.title || selected.title, `${recent.length} apps in your local activity row.`, true));
-    host.appendChild(widget('Game Library', `${state.apps.filter(a => a.category === 'games').length} games`, `${customCount} custom web apps`, false));
-    host.appendChild(widget('Media', state.currentTab === 'media' ? 'Media home' : 'Ready', state.audioEl && !state.audioEl.paused ? 'Music playing' : 'Nothing playing', false));
-    host.appendChild(widget('Trophies', '0% complete', 'No console account connected', false, 0));
-  }
+    if (!state.settings.showWidgets || state.currentId !== 'welcome') return;
 
-  function widget(kicker, value, sub, large, progress) {
-    const el = document.createElement('article');
-    el.className = `widget${large ? ' large' : ''}`;
-    el.innerHTML = `<div class="w-kicker">${escapeHtml(kicker)}</div><div class="w-value">${escapeHtml(value)}</div><div class="w-sub">${escapeHtml(sub)}</div>${progress !== undefined ? `<div class="progress"><span style="width:${progress}%"></span></div>` : ''}`;
-    return el;
-  }
+    const store = state.apps.find(a => a.id === 'ps-store');
+    const wish = state.apps.find(a => a.id === 'astro-bot') || state.apps.find(a => a.custom) || store;
+    const activity = state.apps.find(a => a.id === 'tlou') || state.apps[0];
 
+    host.innerHTML = `
+      <div class="welcome-column">
+        <button class="welcome-card large focusable" type="button" data-widget="friends" data-col="0" data-row="0">
+          <div class="card-head"><span class="head-icon">☻</span><span>Online Friends</span><span class="online-dot"></span><span class="head-value">4</span></div>
+          <div class="friends-body"><div class="avatar-row"><span class="avatar">A</span><span class="avatar">S</span><span class="avatar">L</span><span class="avatar">M</span></div><div class="friend-names">Zane Richardsons, Space_Carrot10, DrujiceXI,<br>Elisa Woods</div></div>
+        </button>
+        <button class="welcome-card focusable store-card" type="button" data-widget="store" data-col="0" data-row="1">
+          <div class="store-body" style="background-image:url('${escapeAttr(store?.art || './assets/background-default.svg')}')"></div>
+          <div class="card-head"><span class="head-icon">▣</span><span>PlayStation Store</span></div>
+          <div class="store-copy">Horizon-style adventure collection</div>
+          <div class="store-badge"><span class="platform-badge">PS5</span><span class="platform-badge">PS4</span></div>
+        </button>
+      </div>
+
+      <div class="welcome-column">
+        <button class="welcome-card focusable" type="button" data-widget="accessibility" data-col="1" data-row="0">
+          <div class="card-head"><span class="head-icon">◎</span><span>Accessibility</span></div><div class="accessibility-symbol"></div><div class="accessibility-copy">Make your PS5 more usable for you.</div>
+        </button>
+        <button class="welcome-card large focusable" type="button" data-widget="trophies" data-col="1" data-row="1">
+          <div class="card-head"><span class="head-icon">♜</span><span>Trophies</span><span class="head-value">Total: 380</span></div>
+          <div class="trophy-body"><div class="trophy-row"><div class="trophy"><div class="trophy-symbol">✦</div><div class="trophy-value">1</div></div><div class="trophy"><div class="trophy-symbol">★</div><div class="trophy-value">20</div></div><div class="trophy"><div class="trophy-symbol">★</div><div class="trophy-value">67</div></div><div class="trophy"><div class="trophy-symbol">★</div><div class="trophy-value">292</div></div></div><div class="trophy-footer"><span>◉</span><span>Level 128</span><div class="trophy-progress"><span></span></div><span>33%</span></div></div>
+        </button>
+      </div>
+
+      <div class="welcome-column">
+        <button class="welcome-card focusable" type="button" data-widget="controllers" data-col="2" data-row="0">
+          <div class="card-head"><span class="head-icon">⌁</span><span>Accessories</span></div>
+          <div class="controllers-body"><div class="controller-meter"><div class="controller-ring"></div><div class="battery-bar"></div></div><div class="controller-meter"><div class="controller-ring"></div><div class="battery-bar"></div></div><div class="controller-meter"><div class="controller-ring low"></div><div class="battery-bar low"></div></div></div>
+        </button>
+        <button class="welcome-card large focusable" type="button" data-widget="wishlist" data-col="2" data-row="1">
+          <div class="wishlist-body" style="background-image:url('${escapeAttr(wish?.art || './assets/background-default.svg')}')"></div>
+          <div class="card-head"><span class="head-icon">♥</span><span>Wishlist</span></div><div class="wishlist-copy">${escapeHtml(wish?.title || 'Your wishlist')}</div>
+          <div class="store-badge"><span class="platform-badge">PS5</span><span class="platform-badge">PS4</span></div>
+        </button>
+      </div>
+
+      <div class="welcome-column">
+        <button class="welcome-card large focusable" type="button" data-widget="activity" data-col="3" data-row="0">
+          <div class="card-head"><span class="head-icon">☻</span><span>Friend Activity</span></div><div class="activity-body"><div class="activity-game">A friend just started playing a new game.</div><div class="activity-sub">First time here? Add your websites from Settings.</div>${activity?.art ? `<img class="activity-thumb" src="${escapeAttr(activity.art)}" alt="">` : ''}</div>
+        </button>
+      </div>`;
+
+    $$('.welcome-card', host).forEach(card => {
+      card.addEventListener('click', () => {
+        if (!state.keyboard) card.blur();
+        playUiSound('select');
+        const action = card.dataset.widget;
+        if (action === 'store') selectApp(store, {focus:false, sound:false});
+        if (action === 'wishlist') selectApp(wish, {focus:false, sound:false});
+        if (action === 'accessibility') openSettings('general');
+        if (action === 'trophies') toast('Trophy data is local-only in this PWA.');
+        if (action === 'friends') toast('Friends are represented locally. No account is connected.');
+        if (action === 'controllers') toast('Controller status is visual-only in this PWA.');
+        if (action === 'activity') toast('Friend Activity is a local mock card.');
+      });
+    });
+    restoreKeyboardFocus();
+  }
   function getRecentApps() {
     const order = state.apps.filter(a => a.lastOpened).sort((a,b) => b.lastOpened - a.lastOpened);
     return order.length ? order : [getCurrentApp()];
   }
 
-  async function selectApp(app) {
+  function selectApp(app, {focus = false, sound = true} = {}) {
     if (!app) return;
     state.currentId = app.id;
     app.lastOpened = Date.now();
-    if (app.custom) await dbPut(STORE_APPS, app);
-    await saveMeta();
+    if (app.custom) dbPut(STORE_APPS, app).catch(console.warn);
+    saveMeta().catch(console.warn);
     stopAppMusic();
     renderCarousel();
     updateHero();
     renderWidgets();
-    playUiSound('hover');
+    if (sound) playUiSound('hover');
     maybePlayAppMusic(app);
+    if (focus) {
+      state.keyboardTargetId = app.id;
+      requestAnimationFrame(() => restoreKeyboardFocus());
+    }
   }
 
   function switchTab(tab) {
@@ -471,27 +607,29 @@
     state.currentTab = tab;
     const first = getVisibleApps()[0];
     if (first) state.currentId = first.id;
-    saveMeta();
-    renderTabs();
-    renderCarousel();
-    updateHero();
-    renderWidgets();
+    saveMeta().catch(console.warn);
+    renderTabs(); renderCarousel(); updateHero(); renderWidgets();
     playUiSound('select');
+    if (state.keyboard) requestAnimationFrame(() => focusTile(findCurrentIndex()));
   }
 
   function focusTile(index) {
     const tiles = $$('.app-tile');
     if (!tiles.length) return;
-    const b = tiles[clamp(index, 0, tiles.length - 1)];
-    b.focus({ preventScroll: true });
-    markKeyboard(b);
-    b.scrollIntoView({ behavior: state.settings.reduceMotion ? 'auto' : 'smooth', block: 'nearest', inline: 'center' });
-    selectApp(state.apps.find(a => a.id === b.dataset.id));
-  }
-
-  function findCurrentIndex() {
-    const visible = getVisibleApps();
-    return Math.max(0, visible.findIndex(a => a.id === state.currentId));
+    const b = tiles[clamp(index,0,tiles.length-1)];
+    const app = state.apps.find(a => a.id === b.dataset.id);
+    if (!app) return;
+    state.keyboardRegion = 'tile';
+    state.keyboardTargetId = app.id;
+    state.keyboard = true;
+    document.documentElement.classList.add('keyboard-mode');
+    selectApp(app, {focus:true, sound:true});
+    requestAnimationFrame(() => {
+      const fresh = document.querySelector(`.app-tile[data-id="${CSS.escape(app.id)}"]`);
+      if (!fresh) return;
+      fresh.scrollIntoView({behavior:state.settings.reduceMotion ? 'auto' : 'smooth',block:'nearest',inline:'center'});
+      focusElement(fresh,'tile',app.id,false);
+    });
   }
 
   function launchCurrent() { launchApp(getCurrentApp()); }
@@ -550,7 +688,7 @@
     $('#controlCenter').setAttribute('aria-hidden', String(!state.controlCenter));
     renderControlCenter();
     playUiSound(state.controlCenter ? 'open' : 'back');
-    if (state.controlCenter) setTimeout(() => $$('.cc-control')[0]?.focus(), 20);
+    if (state.controlCenter) setTimeout(() => { const first = $$('.cc-control')[0]; if (first && state.keyboard) focusElement(first, 'cc', first.id, false); }, 20);
   }
 
   function closeControlCenter() {
@@ -559,6 +697,7 @@
     $('#controlCenter').classList.remove('is-open');
     $('#controlCenter').setAttribute('aria-hidden', 'true');
     playUiSound('back');
+    if (state.keyboard) { state.keyboardRegion = 'tile'; state.keyboardTargetId = state.currentId; requestAnimationFrame(() => restoreKeyboardFocus()); }
   }
 
   function renderControlCenter() {
@@ -643,6 +782,7 @@
     host.appendChild(back); host.appendChild(panel);
     host.setAttribute('aria-hidden','false');
     wireSettings(opts);
+    if (state.keyboard) setTimeout(() => { const first = $('.settings-nav button'); if (first) focusElement(first, 'settings-nav', first.dataset.section, false); }, 20);
   }
 
   function settingsShell() {
@@ -914,6 +1054,7 @@
     $('#overlayLayer').innerHTML = '';
     $('#overlayLayer').setAttribute('aria-hidden','true');
     renderWidgets();
+    if (state.keyboard) { state.keyboardRegion = 'tile'; state.keyboardTargetId = state.currentId; requestAnimationFrame(() => restoreKeyboardFocus()); }
   }
 
   function toast(message) {
@@ -926,7 +1067,7 @@
 
   function updateClock() {
     const d = new Date();
-    $('#clock').textContent = d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+    $('#clock').textContent = d.toLocaleTimeString([], {hour:'numeric',minute:'2-digit',hour12:true}).replace(/\s/g,'').toUpperCase();
   }
 
   let deferredPrompt = null;
@@ -999,6 +1140,8 @@
       stars: `<g fill="#fff" opacity=".75">${Array.from({length:35},(_,i)=>`<circle cx="${(i*353)%1920}" cy="${(i*173)%900}" r="${1+(i%4)}"/>`).join('')}</g>`,
       arc: `<path d="M-120 940 C 330 300 760 1120 1170 520 S 1800 260 2110 760" fill="none" stroke="#fff" stroke-opacity=".14" stroke-width="70"/><path d="M-150 1010 C 310 370 750 1180 1200 610 S 1800 350 2110 830" fill="none" stroke="#fff" stroke-opacity=".08" stroke-width="25"/>`,
       play: `<circle cx="1540" cy="520" r="220" fill="#fff" opacity=".08"/><path d="M1490 410l170 110-170 110z" fill="#fff" opacity=".65"/>`,
+      mountain: `<path d="M0 820L360 410l210 260 250-330 410 480 250-260 430 390H0z" fill="#fff" opacity=".15"/><path d="M210 650l150-240 70 90" fill="none" stroke="#fff" stroke-opacity=".26" stroke-width="22"/>`,
+      leaves: `<g fill="none" stroke="#dce8d8" stroke-opacity=".20" stroke-width="18"><path d="M1250 830C1280 590 1400 350 1640 180"/><path d="M1350 690c-150-80-240-170-300-320"/><path d="M1470 570c150-80 245-165 310-295"/><path d="M1180 820c130-70 210-160 250-275"/></g>`,
     };
     const svgText = encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080"><defs><linearGradient id="g" x1="0" y1="1" x2="1" y2="0"><stop stop-color="${a}"/><stop offset=".55" stop-color="${b}"/><stop offset="1" stop-color="${c}"/></linearGradient><radialGradient id="r"><stop stop-color="#fff" stop-opacity=".20"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient></defs><rect width="1920" height="1080" fill="url(#g)"/><circle cx="1440" cy="350" r="520" fill="url(#r)"/>${motifs[motif]||motifs.grid}<rect width="1920" height="1080" fill="url(#g)" opacity=".11"/><text x="120" y="850" fill="#fff" fill-opacity=".90" font-family="Arial,Helvetica,sans-serif" font-size="88" font-weight="700" letter-spacing="5">${safe}</text></svg>`);
     return `data:image/svg+xml;charset=utf-8,${svgText}`;
@@ -1008,6 +1151,19 @@
     const [a,b] = colors;
     const s = encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><defs><linearGradient id="g" x1="0" y1="1" x2="1" y2="0"><stop stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient></defs><rect width="256" height="256" rx="58" fill="url(#g)"/><circle cx="178" cy="70" r="68" fill="#fff" opacity=".08"/><text x="128" y="155" text-anchor="middle" fill="#fff" font-family="Arial,Helvetica,sans-serif" font-size="110" font-weight="750">${String(letter).slice(0,2)}</text></svg>`);
     return `data:image/svg+xml;charset=utf-8,${s}`;
+  }
+
+
+  function makeSymbolIcon(kind) {
+    const bg = kind === 'store' ? '#0b80c9' : '#20252b';
+    const svgMap = {
+      welcome: `<rect x="55" y="55" width="58" height="58" fill="none" stroke="#fff" stroke-width="8"/><polygon points="168,53 205,90 168,127" fill="none" stroke="#fff" stroke-width="8"/><path d="M60 166l48 48 48-48" fill="none" stroke="#fff" stroke-width="8"/><circle cx="185" cy="185" r="27" fill="none" stroke="#fff" stroke-width="8"/>`,
+      store: `<rect x="78" y="70" width="100" height="120" rx="10" fill="none" stroke="#fff" stroke-width="8"/><path d="M92 78c4-28 20-40 36-40s32 12 36 40" fill="none" stroke="#fff" stroke-width="8"/><path d="M101 122h54" stroke="#fff" stroke-width="8"/>`,
+      library: `<rect x="48" y="48" width="58" height="58" rx="5" fill="none" stroke="#fff" stroke-width="8"/><rect x="150" y="48" width="58" height="58" rx="5" fill="none" stroke="#fff" stroke-width="8"/><rect x="48" y="150" width="58" height="58" rx="5" fill="none" stroke="#fff" stroke-width="8"/><rect x="150" y="150" width="58" height="58" rx="5" fill="none" stroke="#fff" stroke-width="8"/>`,
+      media: `<path d="M92 60l91 68-91 68V60z" fill="none" stroke="#fff" stroke-width="8"/>`
+    };
+    const source = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><rect width="256" height="256" rx="34" fill="${bg}"/>${svgMap[kind] || svgMap.library}</svg>`;
+    return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(source)}`;
   }
 
   function svg(name) {
@@ -1026,6 +1182,7 @@
       mic: '<rect x="9" y="4" width="6" height="11" rx="3"/><path d="M6.5 11.5a5.5 5.5 0 0 0 11 0M12 17v3M9 20h6"/>',
       settings: '<path d="M12 2.8v2M12 19.2v2M2.8 12h2M19.2 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M18.4 5.6 17 7M7 17l-1.4 1.4"/><circle cx="12" cy="12" r="4.6"/>',
       power: '<path d="M12 3v8"/><path d="M7.2 5.6a8 8 0 1 0 9.6 0"/>',
+      profile: '<rect x="4.5" y="4.5" width="15" height="15" rx="4"/><circle cx="9" cy="10.5" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="10.5" r="1" fill="currentColor" stroke="none"/><path d="M8 14c1.2 1.3 2.8 1.9 4 1.9s2.8-.6 4-1.9"/>',
     };
     return `<svg class="icon" viewBox="0 0 24 24" aria-hidden="true">${p[name] || p.library}</svg>`;
   }

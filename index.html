@@ -3,11 +3,11 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
-  <meta name="theme-color" content="#0a0d14">
+  <meta name="theme-color" content="#070a10">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="description" content="A PS5-inspired installable home-screen PWA with spatial navigation, touch controls, local web apps, artwork and per-app music.">
+  <meta name="description" content="A PS5-inspired home-screen PWA with controller-style navigation, touch support, local web apps, custom artwork and per-app music.">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./assets/icons/icon-192.png">
   <link rel="apple-touch-icon" href="./assets/icons/icon-192.png">
@@ -15,54 +15,47 @@
   <title>Playground Home</title>
 </head>
 <body>
-  <div id="app" aria-live="polite">
+  <div id="app">
     <div class="ambient-bg" id="ambientBg"></div>
+    <div class="ambient-vignette"></div>
     <div class="ambient-noise"></div>
 
-    <header class="topbar">
+    <header class="topbar" aria-label="Playground Home">
       <nav class="home-tabs" aria-label="Home sections">
-        <button class="text-tab is-active" id="gamesTab" type="button" data-action="tab" data-value="games">Games</button>
-        <button class="text-tab" id="mediaTab" type="button" data-action="tab" data-value="media">Media</button>
+        <button class="text-tab focusable is-active" id="gamesTab" type="button" data-action="tab" data-value="games">Games</button>
+        <button class="text-tab focusable" id="mediaTab" type="button" data-action="tab" data-value="media">Media</button>
       </nav>
 
       <div class="top-actions">
-        <button class="icon-button focusable" id="searchButton" type="button" aria-label="Search" data-focus-label="Search"></button>
-        <button class="icon-button focusable" id="settingsButton" type="button" aria-label="Settings" data-focus-label="Settings"></button>
-        <button class="profile-button focusable" id="profileButton" type="button" aria-label="Profile" data-focus-label="Profile"><span>Y</span></button>
+        <button class="top-icon focusable" id="searchButton" type="button" aria-label="Search" data-focus-label="Search"></button>
+        <button class="top-icon focusable" id="settingsButton" type="button" aria-label="Settings" data-focus-label="Settings"></button>
+        <button class="profile-button focusable" id="profileButton" type="button" aria-label="Profile" data-focus-label="Profile"></button>
+        <time class="clock" id="clock">10:24AM</time>
       </div>
     </header>
 
     <main id="mainView" class="main-view">
-      <section class="home-stage" id="homeStage">
+      <section class="home-stage welcome-mode" id="homeStage">
+        <div class="rail-mask" aria-hidden="true"></div>
         <div class="carousel-wrap">
           <div class="carousel" id="appCarousel" role="listbox" aria-label="Games and apps"></div>
         </div>
 
         <div class="hero-copy" id="heroCopy">
-          <div class="hero-meta" id="heroMeta">LOCAL APP</div>
+          <div class="hero-meta" id="heroMeta">GAME</div>
           <h1 id="heroTitle">Welcome</h1>
           <p id="heroDescription">Choose an app to see its details.</p>
           <div class="hero-actions">
-            <button class="pill-button primary focusable" id="heroLaunch" type="button" data-focus-label="Open"></button>
-            <button class="round-more focusable" id="heroMore" type="button" aria-label="More options" data-focus-label="More"></button>
+            <button class="hero-action focusable primary" id="heroLaunch" type="button" data-focus-label="Open">Open</button>
+            <button class="hero-action secondary focusable" id="heroMore" type="button" aria-label="More options" data-focus-label="More"></button>
           </div>
         </div>
 
-        <div class="welcome-widgets" id="welcomeWidgets" aria-label="Welcome Hub widgets"></div>
+        <div class="welcome-viewport" id="welcomeViewport" aria-label="Welcome Hub">
+          <div class="welcome-grid" id="welcomeWidgets"></div>
+        </div>
       </section>
     </main>
-
-    <footer class="bottom-bar" id="bottomBar">
-      <div class="bottom-left" id="bottomHints">
-        <span class="controller-hint"><kbd>×</kbd><span>Open</span></span>
-        <span class="controller-hint"><kbd>○</kbd><span>Back</span></span>
-        <span class="controller-hint"><kbd>□</kbd><span>Options</span></span>
-      </div>
-      <div class="bottom-right">
-        <span class="clock" id="clock">00:00</span>
-        <button class="ps-launch focusable" id="psButton" type="button" aria-label="Open control center" data-focus-label="Control center">PS</button>
-      </div>
-    </footer>
 
     <div class="control-center" id="controlCenter" aria-hidden="true">
       <div class="cc-backdrop"></div>
@@ -74,8 +67,6 @@
 
     <div class="overlay-layer" id="overlayLayer" aria-hidden="true"></div>
     <div class="toast" id="toast" role="status"></div>
-
-    <div class="touch-handle" id="touchHandle" aria-hidden="true"></div>
   </div>
   <script src="./app.js"></script>
 </body>

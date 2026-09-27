@@ -1,51 +1,96 @@
-# Playground Home — PS5-inspired PWA
+# Playground Home — PS5-style Home PWA
 
-A self-contained, installable PWA that recreates the *feel* of the PS5 Home/Control Center using original HTML/CSS/JS artwork and synthesized UI tones.
+This folder is a dependency-free Progressive Web App recreation of the **visual/interaction language** of the PS5 Home / Welcome Hub. It is deliberately built with original CSS/SVG artwork and generated interface tones rather than bundling Sony/PlayStation proprietary UI assets, fonts, music or sound effects.
 
-## What is included
+## What changed in this visual pass
 
-- Responsive Games / Media home tabs.
-- Horizontal app carousel with selected-game hero presentation.
-- PS5-inspired Welcome Hub widgets.
-- Control Center opened by the on-screen PS button, `F1`, or `P` on desktop; on touch devices, swipe upward from the bottom or use the visible PS button.
-- Keyboard-first spatial navigation on PCs. Focus outlines are only shown after keyboard input; pointer/touch interaction does not leave a persistent keyboard highlight.
-- Touch-friendly buttons, horizontal swipe/scroll, mobile safe-area support, and portrait/landscape layouts.
-- Local “website as game/app” manager under Settings → Apps.
-- Separate cover and icon uploads, with fallback to one image if only one is provided.
-- Per-app uploaded music that can loop while the app is selected.
-- Website opening in a new tab or an optional embedded iframe. Some websites block iframe embedding; New tab is the most compatible mode.
-- Search, Library, Profile menu, local settings, import/export backups, reset, install UI, and service-worker update handling.
-- IndexedDB storage for custom app metadata and uploaded assets.
-- Offline cache for the PWA shell.
+The home screen was rebuilt around the proportions visible in the supplied PS5 Welcome Hub reference:
 
-## Install
+- 23px-style Games / Media tabs in the upper-left.
+- Search, Settings, profile and time in the upper-right.
+- Compact square app rail with ~66px inactive tiles and a ~112px selected tile.
+- White selected border and enlarged selected tile instead of the previous blue browser-style focus outline.
+- The selected tile shows its name directly beneath it.
+- Welcome Hub cards are arranged as PS5-like dark rectangular cards in staggered columns rather than generic pill widgets.
+- Welcome Hub starts around the same vertical point as the supplied reference and intentionally extends horizontally so the next card can appear partially off-screen.
+- Background is a new procedural SVG with dark-blue/purple gradients, glows and abstract controller-symbol linework.
+- Pointer/touch input removes keyboard focus treatment immediately, so a mouse or finger does not leave an unnecessary focus halo.
+- Keyboard input restores a visible spatial focus state and supports arrow-key navigation.
 
-For PWA installation, serve the folder from `https://` or `localhost`. Opening `index.html` directly with `file://` does not satisfy normal PWA installability requirements.
+## Keyboard navigation
 
-### Local test
+On desktop, arrow keys are the primary navigation method.
+
+- Left / Right: move across the app rail.
+- Up: move toward the Games/Media and system icons.
+- Down: enter Welcome Hub cards or the selected app's action area.
+- Enter / Space: activate the focused item.
+- Escape: back out of overlays / Control Center.
+- `F1` or `P`: open the Control Center.
+- `S`: open Settings.
+- `F`: open Search.
+
+The focused item is preserved when the app rail re-renders, fixing the earlier issue where selecting a tile caused keyboard focus to disappear.
+
+## Touch / phone behavior
+
+The app rail scrolls horizontally by swipe. Welcome Hub content becomes a vertically scrollable list on narrow screens. A swipe upward from the home screen opens the Control Center and a swipe downward closes it.
+
+## Custom website “games”
+
+Settings → Apps lets you add a URL as a game or media app.
+
+You can provide:
+
+- title
+- game/media category
+- website URL
+- cover image
+- icon image (or use the cover as the icon)
+- per-app home music
+- embedded/new-tab launch mode
+- optional description
+
+App metadata, artwork and music are kept in IndexedDB locally in the browser.
+
+## PWA installation
+
+Serve the directory from **HTTPS** or `localhost`. Opening `index.html` directly from `file://` does not provide normal service-worker/PWA installation behavior.
+
+Examples:
 
 ```bash
-cd ps5-home-pwa
-python -m http.server 8080
+python -m http.server 8000
 ```
 
-Then open:
+Then open `http://localhost:8000/` and use the browser's **Install app / Add to Home screen** action.
 
-`http://localhost:8080/`
+## Official PS5 UI references used for the recreation
 
-### GitHub Pages
+Sony's public documentation confirms the main Games / Media home structure, the Home Hub concept, Control Center cards/controls, Welcome Hub widgets/background customization, and the Appearance customization introduced for the PS5 UI.
 
-Upload the entire folder to a repository and enable GitHub Pages for the branch/folder containing `index.html`.
+- https://www.playstation.com/content/dam/global_pdc/en/corporate/support/manuals/ps5-docs/1000b-digital-edition/EN_IND_PS5_Digital_Web_Quick_Start_Guide_ENRUSIND_7033927.pdf
+- https://www.playstation.com/en-ca/support/account/welcome-hub/
+- https://blog.playstation.com/2024/09/12/ps5-system-update-adds-welcome-hub-party-share-personalized-3d-audio-profiles-adaptive-controller-charging-and-more/
+- https://blog.playstation.com/2025/04/23/new-ps5-system-software-update-features-audio-focus-and-the-return-of-the-classic-console-ui-customizations/
 
-## Important accuracy note
+## File layout
 
-This project intentionally does **not** ship Sony/PlayStation proprietary screenshots, logos, fonts, official music, official startup/UI sounds, or game cover art. The visual system, layout proportions, focus behavior, cards, gradients, background treatment, responsive behavior and interaction patterns are recreated with original assets.
+```text
+ps5-home-pwa/
+├─ index.html
+├─ styles.css
+├─ app.js
+├─ manifest.webmanifest
+├─ sw.js
+└─ assets/
+   ├─ background-default.svg
+   ├─ audio/
+   └─ icons/
+      ├─ icon-192.png
+      └─ icon-512.png
+```
 
-The project was researched against Sony's current public PS5 documentation and product/UI material:
+## Important limitation
 
-- PS5 Home screen documentation: https://www.playstation.com/content/dam/global_pdc/en-gb/corporate/support/manuals/ps5-docs/1200b/CFI-12XXB_PS5_Quick_Start_Guide_Web%24en-gb.pdf
-- PS5 Control Center documentation: https://www.playstation.com/en-ca/support/games/customize-ps5-control-center/
-- Welcome Hub documentation: https://www.playstation.com/en-ca/support/account/welcome-hub/
-- PS5 Welcome Hub announcement: https://blog.playstation.com/2024/09/12/ps5-system-update-adds-welcome-hub-party-share-personalized-3d-audio-profiles-adaptive-controller-charging-and-more/
-- Classic UI Appearance update: https://blog.playstation.com/2025/04/23/new-ps5-system-software-update-features-audio-focus-and-the-return-of-the-classic-console-ui-customizations/
-- PWA installability reference: https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps/Guides/Making_PWAs_installable
+The project aims to reproduce the layout, proportions, interaction feel, transitions, card construction and overall visual language shown in the supplied reference. Sony's exact proprietary UI assets, licensed game artwork, fonts, music and original system SFX are not included.

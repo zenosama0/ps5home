@@ -29,6 +29,10 @@
       blur: 22,
       openMode: 'new-tab',
       theme: 'ps5',
+      homeMusic: true,
+      musicVolume: 0.38,
+      homeBackground: './assets/backgrounds/default.svg',
+      backgroundPreset: 'default',
     },
     currentTab: 'games',
     currentId: null,
@@ -104,6 +108,16 @@
     },
   ];
 
+  const BACKGROUND_PRESETS = [
+    { id:'default', name:'PS5 Blue', src:'./assets/backgrounds/default.svg', note:'Dark blue signal artwork' },
+    { id:'blue-wave', name:'Blue Wave', src:'./assets/backgrounds/blue-wave.svg', note:'Layered blue light trails' },
+    { id:'violet-signal', name:'Violet Signal', src:'./assets/backgrounds/violet-signal.svg', note:'Purple-blue ambient lines' },
+    { id:'midnight-grid', name:'Midnight Grid', src:'./assets/backgrounds/midnight-grid.svg', note:'Subtle geometric mesh' },
+    { id:'aurora-rings', name:'Aurora Rings', src:'./assets/backgrounds/aurora-rings.svg', note:'Soft cyan orbital glow' },
+    { id:'blueprint', name:'Blueprint', src:'./assets/backgrounds/blueprint.svg', note:'Technical console lines' },
+    { id:'black-glass', name:'Black Glass', src:'./assets/backgrounds/black-glass.svg', note:'Minimal dark glass' },
+  ];
+
   document.addEventListener('DOMContentLoaded', init);
 
   async function init() {
@@ -170,6 +184,7 @@
   }
 
   function onPointerDown(e) {
+    unlockAndSyncMusic();
     state.keyboard = false;
     state.keyboardRegion = null;
     state.keyboardTargetId = null;
@@ -205,6 +220,7 @@
       return;
     }
 
+    unlockAndSyncMusic();
     state.keyboard = true;
     document.documentElement.classList.add('keyboard-mode');
 
@@ -419,7 +435,8 @@
     state.currentTab = currentTab === 'media' ? 'media' : 'games';
     const remembered = state.settings.rememberSelection ? currentId : null;
     const visible = state.apps.filter(a => a.category === state.currentTab);
-    state.currentId = visible.some(a => a.id === remembered) ? remembered : (visible[0]?.id || state.apps[0]?.id);
+    const defaultHome = visible.find(a => a.id === 'welcome')?.id || visible[0]?.id || state.apps[0]?.id;
+    state.currentId = visible.some(a => a.id === remembered) ? remembered : defaultHome;
     applyTheme();
   }
 
@@ -461,7 +478,18 @@
       wrap.innerHTML = `<div class="empty-state" style="padding:42px 0;text-align:left">No media apps yet. Open Settings → Apps and add a website as a media app.</div>`;
       return;
     }
+
+    // A small leading spacer recreates the partially-visible previous tile at the left edge.
+    const lead = document.createElement('span');
+    lead.className = 'carousel-spacer';
+    lead.setAttribute('aria-hidden', 'true');
+    wrap.appendChild(lead);
+
     apps.forEach((app, i) => {
+      const slot = document.createElement('div');
+      slot.className = 'app-slot' + (app.id === state.currentId ? ' is-active' : '');
+      slot.dataset.id = app.id;
+
       const b = document.createElement('button');
       b.className = 'app-tile focusable';
       b.type = 'button';
@@ -473,15 +501,20 @@
       const tileSrc = app.icon || app.art;
       b.innerHTML = `<img src="${escapeAttr(tileSrc)}" alt=""><span class="tile-label">${escapeHtml(app.title)}</span>`;
       b.addEventListener('click', (ev) => {
-        ev.currentTarget.blur();
+        if (!state.keyboard) ev.currentTarget.blur();
         selectApp(app, {focus:false, sound:true});
       });
       b.addEventListener('dblclick', () => launchApp(app));
+      b.addEventListener('pointerenter', ev => {
+        if (ev.pointerType === 'mouse') selectApp(app, {focus:false, sound:false, music:false});
+      });
       if (app.id === state.currentId) b.classList.add('is-active');
-      wrap.appendChild(b);
+      slot.appendChild(b);
+      wrap.appendChild(slot);
     });
+
     requestAnimationFrame(() => {
-      const current = wrap.querySelector(`[data-id="${CSS.escape(state.currentId || '')}"]`);
+      const current = wrap.querySelector(`.app-tile[data-id="${CSS.escape(state.currentId || '')}"]`);
       current?.scrollIntoView({ behavior:'auto', block:'nearest', inline:'center' });
       restoreKeyboardFocus();
     });
@@ -506,7 +539,10 @@
     $('#heroTitle').textContent = app.title;
     $('#heroDescription').textContent = app.description || '';
     $('#heroLaunch').textContent = app.launch === 'library' ? 'View' : app.launch === 'welcome' ? 'Welcome' : app.category === 'media' ? 'Open' : 'Play';
-    $('#ambientBg').style.backgroundImage = `url("${escapeCssUrl(app.cover || app.art || app.icon)}")`;
+    const background = app.id === 'welcome'
+      ? (state.settings.homeBackground || './assets/backgrounds/default.svg')
+      : (app.cover || app.art || app.icon || './assets/backgrounds/default.svg');
+    $('#ambientBg').style.backgroundImage = `url("${escapeCssUrl(background)}")`;
     $('#ambientBg').style.filter = `saturate(1.08) blur(${Math.max(0, state.settings.blur / 7)}px)`;
     $('#ambientBg').style.transform = state.settings.reduceMotion ? 'scale(1.012)' : 'scale(1.025)';
     $('#heroLaunch').dataset.id = app.id;
@@ -584,18 +620,20 @@
     return order.length ? order : [getCurrentApp()];
   }
 
-  function selectApp(app, {focus = false, sound = true} = {}) {
+  function selectApp(app, {focus = false, sound = true, music = true} = {}) {
     if (!app) return;
+    const changed = state.currentId !== app.id;
     state.currentId = app.id;
     app.lastOpened = Date.now();
     if (app.custom) dbPut(STORE_APPS, app).catch(console.warn);
     saveMeta().catch(console.warn);
-    stopAppMusic();
-    renderCarousel();
-    updateHero();
-    renderWidgets();
+    if (changed) {
+      renderCarousel();
+      updateHero();
+      renderWidgets();
+    }
     if (sound) playUiSound('hover');
-    maybePlayAppMusic(app);
+    if (music && changed) syncMusic(app);
     if (focus) {
       state.keyboardTargetId = app.id;
       requestAnimationFrame(() => restoreKeyboardFocus());
@@ -610,6 +648,7 @@
     saveMeta().catch(console.warn);
     renderTabs(); renderCarousel(); updateHero(); renderWidgets();
     playUiSound('select');
+    syncMusic(getCurrentApp());
     if (state.keyboard) requestAnimationFrame(() => focusTile(findCurrentIndex()));
   }
 
@@ -810,11 +849,16 @@
   }
 
   function appearanceSettingsHtml() {
-    return `<div class="settings-section"><h3>Background</h3><div class="settings-card"><div class="setting-row"><div><div class="sr-title">Background blur</div><div class="sr-sub">Amount of depth-of-field applied to the selected cover.</div></div><input id="blurRange" type="range" min="0" max="50" value="${state.settings.blur}" style="width:190px"></div></div></div><div class="settings-section"><h3>Design note</h3><div class="settings-card"><div class="setting-row"><div><div class="sr-title">PS5-inspired presentation</div><div class="sr-sub">The layout, motion and interaction are recreated with original HTML/CSS/JS artwork; Sony proprietary screenshots, logos, music and SFX are not bundled.</div></div></div></div></div>`;
+    const current = state.settings.homeBackground || '';
+    const cards = BACKGROUND_PRESETS.map(bg => `<button class="bg-preset focusable ${current === bg.src ? 'is-selected' : ''}" type="button" data-background="${escapeAttr(bg.src)}" data-bg-id="${escapeAttr(bg.id)}"><span class="bg-thumb" style="background-image:url('${escapeAttr(bg.src)}')"></span><span class="bg-preset-copy"><strong>${escapeHtml(bg.name)}</strong><small>${escapeHtml(bg.note)}</small></span><span class="bg-check">✓</span></button>`).join('');
+    const custom = current && !BACKGROUND_PRESETS.some(bg => bg.src === current);
+    const selectedPreset = BACKGROUND_PRESETS.find(bg => bg.src === current);
+    const selectedName = selectedPreset?.name || (custom ? 'Custom image' : 'PS5 Blue');
+    return `<div class="settings-section"><h3>Background</h3><div class="background-current-preview" style="background-image:url('${escapeAttr(current || './assets/backgrounds/default.svg')}')"><div class="background-current-scrim"></div><div class="background-current-copy"><span>Welcome home</span><strong>${escapeHtml(selectedName)}</strong><small>Selected for your home screen</small></div></div><p class="settings-intro">Choose the atmosphere used by the Welcome home. Presets are local, lightweight and designed to stay readable under the UI.</p><div class="background-gallery">${cards}<label class="bg-preset bg-upload focusable"><input id="backgroundFile" type="file" accept="image/*" hidden><span class="bg-upload-art">＋</span><span class="bg-preset-copy"><strong>${custom ? 'Custom image' : 'Use your image'}</strong><small>${custom ? 'Current custom background' : 'Choose from this device'}</small></span></label></div></div><div class="settings-section"><h3>Background depth</h3><div class="settings-card"><div class="setting-row"><div><div class="sr-title">Background blur</div><div class="sr-sub">Keep a little depth behind the home tiles without washing out the artwork.</div></div><input id="blurRange" type="range" min="0" max="50" value="${state.settings.blur}" style="width:190px"></div></div></div><div class="settings-section"><h3>Design</h3><div class="settings-card"><div class="setting-row"><div><div class="sr-title">Original visual recreation</div><div class="sr-sub">The console-style layout uses original HTML/CSS artwork and generated audio rather than bundled Sony system assets.</div></div></div></div></div>`;
   }
 
   function soundSettingsHtml() {
-    return `<div class="settings-section"><h3>Audio</h3><div class="settings-card">${settingSwitch('uiSounds','UI sounds','Play short original interface tones for focus, selection and navigation.',state.settings.uiSounds)}${settingSwitch('autoMusic','Per-app music','Play an uploaded track while its custom app is selected.',state.settings.autoMusic)}<div class="setting-row"><div><div class="sr-title">UI volume</div><div class="sr-sub">Controls the original synthesized interface sounds.</div></div><input id="soundRange" type="range" min="0" max="1" step="0.01" value="${state.settings.soundVolume}" style="width:190px"></div></div></div>`;
+    return `<div class="settings-section"><h3>Audio</h3><div class="settings-card">${settingSwitch('homeMusic','Home background music','Play the built-in original ambient track while browsing the home screen.',state.settings.homeMusic)}${settingSwitch('uiSounds','UI sounds','Play short original interface tones for focus, selection and navigation.',state.settings.uiSounds)}${settingSwitch('autoMusic','Per-app music','Play an uploaded track while its custom app is selected.',state.settings.autoMusic)}<div class="setting-row"><div><div class="sr-title">Music volume</div><div class="sr-sub">Controls both the home ambience and uploaded app music.</div></div><input id="musicRange" type="range" min="0" max="1" step="0.01" value="${state.settings.musicVolume}" style="width:190px"></div><div class="setting-row"><div><div class="sr-title">UI volume</div><div class="sr-sub">Controls the original synthesized interface sounds.</div></div><input id="soundRange" type="range" min="0" max="1" step="0.01" value="${state.settings.soundVolume}" style="width:190px"></div></div></div><div class="settings-section"><div class="settings-card audio-note"><span class="audio-note-icon">♪</span><div><strong>Browser autoplay note</strong><p>The home track starts on the first keyboard or pointer interaction, which keeps the PWA compatible with browser autoplay rules.</p></div></div></div>`;
   }
 
   function appsSettingsHtml(opts = {}) {
@@ -841,12 +885,34 @@
       b.classList.toggle('is-on', state.settings[key]);
       b.setAttribute('aria-checked', String(state.settings[key]));
       await saveMeta();
-      applyTheme(); renderWidgets(); maybePlayAppMusic(getCurrentApp());
+      applyTheme(); renderWidgets(); syncMusic(getCurrentApp());
       playUiSound('select');
     });
     $('#openMode')?.addEventListener('change', async e => { state.settings.openMode = e.target.value; await saveMeta(); });
     $('#blurRange')?.addEventListener('input', async e => { state.settings.blur = Number(e.target.value); updateHero(); await saveMeta(); });
     $('#soundRange')?.addEventListener('input', async e => { state.settings.soundVolume = Number(e.target.value); await saveMeta(); });
+    $('#musicRange')?.addEventListener('input', async e => { state.settings.musicVolume = Number(e.target.value); if (state.audioEl) state.audioEl.volume = state.settings.musicVolume; await saveMeta(); });
+    $$('.bg-preset[data-background]').forEach(b => b.addEventListener('click', async () => {
+      state.settings.homeBackground = b.dataset.background;
+      state.settings.backgroundPreset = b.dataset.bgId || null;
+      await saveMeta();
+      applyTheme();
+      updateHero();
+      renderSettingsSection(opts);
+      playUiSound('select');
+      toast('Welcome background changed.');
+    }));
+    $('#backgroundFile')?.addEventListener('change', async e => {
+      const data = await fileToDataUrl(e.target.files?.[0]);
+      if (!data) return;
+      state.settings.homeBackground = data;
+      state.settings.backgroundPreset = 'custom';
+      await saveMeta();
+      updateHero();
+      renderSettingsSection(opts);
+      playUiSound('select');
+      toast('Custom Welcome background saved.');
+    });
     $('#clearForm')?.addEventListener('click', () => resetAppForm());
     $('#appForm')?.addEventListener('submit', e => { e.preventDefault(); saveAppFromForm(opts.editId); });
     $$('.settings-nav button').forEach(b => b.classList.toggle('is-active', b.dataset.section === state.settingsSection));
@@ -979,29 +1045,50 @@
   function applyTheme() {
     document.documentElement.style.setProperty('--accent', '#2fb9ff');
     document.body.classList.toggle('reduce-motion', !!state.settings.reduceMotion);
-    const bg = state.settings.homeBackground || '';
-    if (bg && !state.controlCenter && !state.settingsOpen) {
+    const bg = state.settings.homeBackground || './assets/backgrounds/default.svg';
+    if (!state.controlCenter && !state.settingsOpen && state.currentId === 'welcome') {
       $('#ambientBg').style.backgroundImage = `url("${escapeCssUrl(bg)}")`;
     }
   }
 
-  async function maybePlayAppMusic(app) {
-    if (!state.settings.autoMusic || !app?.music) return;
-    if (state.audioUrl) URL.revokeObjectURL(state.audioUrl);
+  async function unlockAndSyncMusic() {
+    if (state.settings.uiSounds && !state.audioContext) {
+      try { state.audioContext = new AudioContext(); } catch {}
+    }
+    if (state.audioContext?.state === 'suspended') state.audioContext.resume().catch(() => {});
+    if (!state.audioEl) await syncMusic(getCurrentApp());
+  }
+
+  async function syncMusic(app) {
+    stopMusic();
+    if ((state.settings.autoMusic && app?.music)) {
+      try {
+        const blob = dataUrlToBlob(app.music);
+        state.audioUrl = URL.createObjectURL(blob);
+        const audio = new Audio(state.audioUrl);
+        audio.loop = true;
+        audio.volume = state.settings.musicVolume;
+        state.audioEl = audio;
+        await audio.play();
+        return;
+      } catch (err) {
+        stopMusic();
+      }
+    }
+    if (!state.settings.homeMusic) return;
     try {
-      const blob = dataUrlToBlob(app.music);
-      state.audioUrl = URL.createObjectURL(blob);
-      const audio = new Audio(state.audioUrl);
+      const audio = new Audio('./assets/audio/home-ambient.mp3');
       audio.loop = true;
-      audio.volume = .45;
+      audio.preload = 'auto';
+      audio.volume = state.settings.musicVolume;
       state.audioEl = audio;
       await audio.play();
     } catch (err) {
-      // Autoplay can be blocked until the user interacts; UI remains usable.
+      // Browser autoplay may require another user gesture.
     }
   }
 
-  function stopAppMusic() {
+  function stopMusic() {
     if (state.audioEl) { state.audioEl.pause(); state.audioEl.src = ''; }
     if (state.audioUrl) URL.revokeObjectURL(state.audioUrl);
     state.audioEl = null; state.audioUrl = null;
@@ -1044,16 +1131,20 @@
     host.innerHTML = ''; host.append(back,panel); host.setAttribute('aria-hidden','false');
     $('#panelClose').onclick = closeOverlay;
     panel.querySelectorAll('.switch').forEach(b => b.onclick = async () => {
-      state.settings[b.dataset.setting] = !state.settings[b.dataset.setting]; b.classList.toggle('is-on'); await saveMeta();
+      state.settings[b.dataset.setting] = !state.settings[b.dataset.setting];
+      b.classList.toggle('is-on');
+      await saveMeta();
+      if (b.dataset.setting === 'homeMusic' || b.dataset.setting === 'autoMusic') syncMusic(getCurrentApp());
+      playUiSound('select');
     });
   }
 
   function closeOverlay() {
     state.settingsOpen = false;
-    stopAppMusic();
     $('#overlayLayer').innerHTML = '';
     $('#overlayLayer').setAttribute('aria-hidden','true');
     renderWidgets();
+    syncMusic(getCurrentApp());
     if (state.keyboard) { state.keyboardRegion = 'tile'; state.keyboardTargetId = state.currentId; requestAnimationFrame(() => restoreKeyboardFocus()); }
   }
 

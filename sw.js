@@ -1,7 +1,11 @@
-const CACHE = 'playground-home-v2';
+const CACHE = 'playground-home-v4';
 const CORE = [
   './', './index.html', './styles.css', './app.js', './manifest.webmanifest',
-  './assets/icons/icon-192.png', './assets/icons/icon-512.png', './assets/background-default.svg'
+  './assets/icons/icon-192.png', './assets/icons/icon-512.png',
+  './assets/backgrounds/default.svg', './assets/backgrounds/blue-wave.svg',
+  './assets/backgrounds/violet-signal.svg', './assets/backgrounds/midnight-grid.svg',
+  './assets/backgrounds/aurora-rings.svg', './assets/backgrounds/blueprint.svg',
+  './assets/backgrounds/black-glass.svg', './assets/audio/home-ambient.mp3'
 ];
 
 self.addEventListener('install', event => {
@@ -9,7 +13,10 @@ self.addEventListener('install', event => {
 });
 
 self.addEventListener('activate', event => {
-  event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim()));
+  event.waitUntil(
+    caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
+      .then(() => self.clients.claim())
+  );
 });
 
 self.addEventListener('fetch', event => {
